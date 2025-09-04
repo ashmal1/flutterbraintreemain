@@ -1,4 +1,4 @@
-package com.example.flutterbraintreemain;
+package com.example.flutter_braintree;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -24,7 +24,7 @@ import io.flutter.plugin.common.PluginRegistry.ActivityResultListener;
 
 public class FlutterBraintreeDropIn implements FlutterPlugin, ActivityAware, MethodCallHandler, ActivityResultListener {
 
-    private static final String CHANNEL_NAME = "flutterbraintreemain.drop_in";
+    private static final String CHANNEL_NAME = "flutter_braintree.drop_in";
     private MethodChannel channel;
     private Activity activity;
     private DropInClient dropInClient;
