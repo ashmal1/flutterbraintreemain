@@ -4,14 +4,13 @@ import android.app.Activity;
 import android.content.Intent;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
 
 import com.braintreepayments.api.BraintreeClient;
 import com.braintreepayments.api.DropInClient;
 import com.braintreepayments.api.DropInRequest;
 import com.braintreepayments.api.DropInResult;
-import com.braintreepayments.api.DropInResultCallback;
 import com.braintreepayments.api.PaymentMethodNonce;
-import com.braintreepayments.api.UserCanceledException;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
@@ -27,8 +26,6 @@ public class FlutterBraintreeDropIn implements FlutterPlugin, ActivityAware, Met
     private static final String CHANNEL_NAME = "flutter_braintree.drop_in";
     private MethodChannel channel;
     private Activity activity;
-    private DropInClient dropInClient;
-    private BraintreeClient braintreeClient;
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
@@ -80,29 +77,27 @@ public class FlutterBraintreeDropIn implements FlutterPlugin, ActivityAware, Met
             return;
         }
 
-        braintreeClient = new BraintreeClient(activity, authorization);
-        dropInClient = new DropInClient(activity, braintreeClient);
+        // Cast activity to FragmentActivity as required by the new SDK
+        FragmentActivity fragmentActivity = (FragmentActivity) activity;
 
+        DropInClient dropInClient = new DropInClient(fragmentActivity, authorization);
         DropInRequest dropInRequest = new DropInRequest();
-        dropInClient.launchDropIn(dropInRequest, (dropInResult, error) -> {
-            if (error != null) {
-                result.error("BRAINTREE_ERROR", error.getMessage(), null);
-            } else if (dropInResult != null) {
+
+        dropInClient.launchDropIn(dropInRequest, dropInResult -> {
+            if (dropInResult.getError() != null) {
+                result.error("BRAINTREE_ERROR", dropInResult.getError().getMessage(), null);
+            } else if (dropInResult.getPaymentMethodNonce() != null) {
                 PaymentMethodNonce nonce = dropInResult.getPaymentMethodNonce();
-                if (nonce != null) {
-                    result.success(nonce.getString());
-                } else {
-                    result.error("NO_NONCE", "No payment method nonce returned", null);
-                }
+                result.success(nonce.getString());
             } else {
-                result.error("CANCELLED", "User cancelled", null);
+                result.error("CANCELLED", "User cancelled or no payment method selected", null);
             }
         });
     }
 
     @Override
     public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
-        // If you have any activity result to handle for legacy reasons, handle it here.
+        // Legacy handling if needed
         return false;
     }
 }
