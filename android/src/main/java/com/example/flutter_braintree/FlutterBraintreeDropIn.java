@@ -6,7 +6,6 @@ import android.content.Intent;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
-import com.braintreepayments.api.BraintreeClient;
 import com.braintreepayments.api.DropInClient;
 import com.braintreepayments.api.DropInRequest;
 import com.braintreepayments.api.DropInResult;
@@ -77,12 +76,10 @@ public class FlutterBraintreeDropIn implements FlutterPlugin, ActivityAware, Met
             return;
         }
 
-        // Cast activity to FragmentActivity as required by the new SDK
         FragmentActivity fragmentActivity = (FragmentActivity) activity;
-
         DropInClient dropInClient = new DropInClient(fragmentActivity, authorization);
-        DropInRequest dropInRequest = new DropInRequest();
 
+        DropInRequest dropInRequest = new DropInRequest();
         dropInClient.launchDropIn(dropInRequest, dropInResult -> {
             if (dropInResult.getError() != null) {
                 result.error("BRAINTREE_ERROR", dropInResult.getError().getMessage(), null);
@@ -97,7 +94,6 @@ public class FlutterBraintreeDropIn implements FlutterPlugin, ActivityAware, Met
 
     @Override
     public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
-        // Legacy handling if needed
         return false;
     }
 }
