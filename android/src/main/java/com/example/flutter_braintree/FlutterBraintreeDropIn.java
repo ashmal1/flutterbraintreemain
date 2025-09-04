@@ -71,25 +71,30 @@ public class FlutterBraintreeDropIn implements FlutterPlugin, ActivityAware, Met
     }
 
     private void startDropIn(String authorization, Result result) {
-        if (!(activity instanceof FragmentActivity)) {
-            result.error("INVALID_ACTIVITY", "Activity is not a FragmentActivity", null);
-            return;
-        }
-
-        FragmentActivity fragmentActivity = (FragmentActivity) activity;
-        DropInClient dropInClient = new DropInClient(fragmentActivity, authorization);
-        DropInRequest dropInRequest = new DropInRequest();
-
-        dropInClient.launchDropIn(dropInRequest, dropInResult -> {
-            if (dropInResult.getError() != null) {
-                result.error("BRAINTREE_ERROR", dropInResult.getError().getMessage(), null);
-            } else if (dropInResult.getPaymentMethodNonce() != null) {
-                result.success(dropInResult.getPaymentMethodNonce().getString());
-            } else {
-                result.error("CANCELLED", "User cancelled or no payment method selected", null);
-            }
-        });
+    if (!(activity instanceof FragmentActivity)) {
+        result.error("INVALID_ACTIVITY", "Activity is not a FragmentActivity", null);
+        return;
     }
+
+    FragmentActivity fragmentActivity = (FragmentActivity) activity;
+    DropInClient dropInClient = new DropInClient(fragmentActivity, authorization);
+    DropInRequest dropInRequest = new DropInRequest();
+
+    // Set result listener BEFORE launching
+    dropInClient.setListener(dropInResult -> {
+        if (dropInResult.getError() != null) {
+            result.error("BRAINTREE_ERROR", dropInResult.getError().getMessage(), null);
+        } else if (dropInResult.getPaymentMethodNonce() != null) {
+            result.success(dropInResult.getPaymentMethodNonce().getString());
+        } else {
+            result.error("CANCELLED", "User cancelled or no payment method selected", null);
+        }
+    });
+
+    // Launch without callback
+    dropInClient.launchDropIn(dropInRequest);
+}
+
 
     @Override
     public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
